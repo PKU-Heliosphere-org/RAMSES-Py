@@ -16,3 +16,5 @@ Computer Physics Communications 185 (2014) 670–675,
 Xie Huasheng,
 PDRF: A general dispersion relation solver for magnetized multi-fluid plasma.
 doi: https://doi.org/10.1016/j.cpc.2013.10.012
+
+[Dispersion relation example](example1_firehose_mode_diagnostics.png)
