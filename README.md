@@ -17,4 +17,39 @@ Xie Huasheng,
 PDRF: A general dispersion relation solver for magnetized multi-fluid plasma.
 doi: https://doi.org/10.1016/j.cpc.2013.10.012
 
-[Dispersion relation example](example1_firehose_mode_diagnostics.png)
+# example1：firehose instablity
+
+setting parameters:
+
+ q,      m,      n0,    v0x,  v0y,  v0z,  csz,   csp,  epsnx, epsny
+ 
+-1.0    1.0     4.0     0.0   0.0   0.0   0.02   0.02   0.0    0.0
+ 
+ 1.0    4.0     4.0     0.0   0.0   0.0   0.35   0.10   0.0    0.0
+ 
+ kmin=0.05, kmax=1.5, dk=0.05, theta=10 degree
+ 
+## dispersion relation figure:
+<img src="example1_firehose_mode_dispersion_relation.png">
+
+## polarization relations under eigenvalue perturbation figure:
+<img src="example1_firehose_mode_diagnostics.png">
+
+
+# example2：isotropic oblique waves
+
+setting parameters:
+ 
+ q,      m,      n0,    v0x,  v0y,  v0z,  csz,   csp,  epsnx, epsny
+
+-1.0    1.0     4.0     0.0   0.0   0.0   0.10   0.10   0.0    0.0
+
+ 1.0    4.0     4.0     0.0   0.0   0.0   0.10   0.10   0.0    0.0
+ 
+ kmin=0.05, kmax=5, dk=0.05, theta=60 degree
+
+## dispersion relation figure:
+<img src="example2_isotropic_oblique_wave_modes_dispersion_relation.png">
+
+## polarization relations under eigenvalue perturbation figure:
+<img src="example2_isotropic_oblique_waves_diagnostics.png">
