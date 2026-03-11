@@ -33,7 +33,7 @@ setting parameters:
 <img src="example1_firehose_mode_dispersion_relation.png">
 
 ## polarization relations under eigenvalue perturbation figure:
-<img src="example1_firehose_mode_diagnostics.png">
+<img src="example_1_firehose_mode_diagnostics.png">
 
 
 # example2：isotropic oblique waves
@@ -52,4 +52,4 @@ setting parameters:
 <img src="example2_isotropic_oblique_wave_modes_dispersion_relation.png">
 
 ## polarization relations under eigenvalue perturbation figure:
-<img src="example2_isotropic_oblique_waves_diagnostics.png">
+<img src="example_2_isotropic_oblique_waves_diagnostics.png">
