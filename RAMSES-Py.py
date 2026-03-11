@@ -11,7 +11,7 @@
 # The goal of this project is to provide a more flexible, extensible, 
 # and user-friendly platform for dispersion-relation analysis in magnetized plasmas.
 
-# version 1.0, 2026-03-11, Xie Haoen and He Jiansen
+# version 2.0, 2026-03-11, Xie Haoen and He Jiansen
 
 # reference: 
 # Computer Physics Communications 185 (2014) 670–675,
@@ -538,54 +538,115 @@ def compute_mode_diagnostics(state, eig_track):
     - B_parallel = Bz
     - Ex, Ey represent the horizontal principal components
     """
+    # nk, nvar, ns = eig_track.shape
+    # ind2 = 4 * state.s
+    # eps = 1e-14
+
+    # diagnostics = {
+    #     "EyEx": np.full((nk, ns), np.nan, dtype=float),
+    #     "EzEx": np.full((nk, ns), np.nan, dtype=float),
+    #     "phaseEyEx": np.full((nk, ns), np.nan, dtype=float),
+    #     "density_comp": np.full((nk, ns), np.nan, dtype=float),
+    #     "magnetic_comp": np.full((nk, ns), np.nan, dtype=float),
+    #     "EB_ratio": np.full((nk, ns), np.nan, dtype=float),
+    #     "ByBx": np.full((nk, ns), np.nan, dtype=float),
+    #     "phaseByBx": np.full((nk, ns), np.nan, dtype=float),
+    #     "BzBx": np.full((nk, ns), np.nan, dtype=float),
+    # }
+
+    # for ik in range(nk):
+    #     for im in range(ns):
+    #         vec = eig_track[ik, :, im]
+    #         scale = np.max(np.abs(vec))
+    #         if scale < eps:
+    #             continue
+    #         vec = vec / scale
+
+    #         dn = vec[0:ind2:4]
+    #         E = vec[ind2:ind2 + 3]
+    #         B = vec[ind2 + 3:ind2 + 6]
+
+    #         ex, ey, ez = E
+    #         bx, by, bz = B
+
+    #         e_norm = np.linalg.norm(E)
+    #         b_norm = np.linalg.norm(B)
+
+    #         dn_rel = dn / np.maximum(state.ns0, eps)
+
+    #         if np.abs(ex) >= eps:
+    #             diagnostics["EyEx"][ik, im] = np.abs(ey / ex)
+    #             diagnostics["EzEx"][ik, im] = np.abs(ez / ex)
+    #             diagnostics["phaseEyEx"][ik, im] = np.degrees(np.angle(ey / ex))
+
+    #         diagnostics["density_comp"][ik, im] = np.linalg.norm(dn_rel) / (b_norm + eps)
+    #         diagnostics["magnetic_comp"][ik, im] = np.abs(bz) ** 2 / (b_norm**2 + eps)
+    #         diagnostics["EB_ratio"][ik, im] = e_norm / (np.sqrt(state.c2) * b_norm + eps)
+    #         diagnostics["ByBx"][ik, im] = np.abs(by / bx) if np.abs(bx) >= eps else np.nan
+    #         diagnostics["phaseByBx"][ik, im] = np.degrees(np.angle(by / bx)) if np.abs(bx) >= eps else np.nan
+    #         diagnostics["BzBx"][ik, im] = np.abs(bz / bx) if np.abs(bx) >= eps else np.nan
+
     nk, nvar, ns = eig_track.shape
     ind2 = 4 * state.s
-    eps = 1e-14
+    eps_abs = 1e-14              
+    rel_threshold = 1e-6          
 
     diagnostics = {
-        "EyEx": np.full((nk, ns), np.nan, dtype=float),
-        "EzEx": np.full((nk, ns), np.nan, dtype=float),
-        "phaseEyEx": np.full((nk, ns), np.nan, dtype=float),
-        "density_comp": np.full((nk, ns), np.nan, dtype=float),
+        "EyEx":          np.full((nk, ns), np.nan, dtype=float),
+        "EzEx":          np.full((nk, ns), np.nan, dtype=float),
+        "E_ellipse_angle":     np.full((nk, ns), np.nan, dtype=float),
+        "density_comp":  np.full((nk, ns), np.nan, dtype=float),
         "magnetic_comp": np.full((nk, ns), np.nan, dtype=float),
-        "EB_ratio": np.full((nk, ns), np.nan, dtype=float),
-        "ByBx": np.full((nk, ns), np.nan, dtype=float),
-        "phaseByBx": np.full((nk, ns), np.nan, dtype=float),
-        "BzBx": np.full((nk, ns), np.nan, dtype=float),
+        "EB_ratio":      np.full((nk, ns), np.nan, dtype=float),
+        "ByBx":          np.full((nk, ns), np.nan, dtype=float),
+        "B_ellipse_angle":     np.full((nk, ns), np.nan, dtype=float),
+        "BzBx":          np.full((nk, ns), np.nan, dtype=float),
     }
 
     for ik in range(nk):
         for im in range(ns):
             vec = eig_track[ik, :, im]
             scale = np.max(np.abs(vec))
-            if scale < eps:
+            if scale < eps_abs:
                 continue
             vec = vec / scale
 
             dn = vec[0:ind2:4]
-            E = vec[ind2:ind2 + 3]
-            B = vec[ind2 + 3:ind2 + 6]
-
+            E  = vec[ind2:ind2 + 3]
+            B  = vec[ind2 + 3:ind2 + 6]
             ex, ey, ez = E
             bx, by, bz = B
 
             e_norm = np.linalg.norm(E)
             b_norm = np.linalg.norm(B)
+            dn_rel = dn / np.maximum(state.ns0, eps_abs)
 
-            dn_rel = dn / np.maximum(state.ns0, eps)
+            if np.abs(ex) >= rel_threshold * e_norm and e_norm > eps_abs:
+                diagnostics["EyEx"][ik, im]      = np.abs(ey / ex)
+                diagnostics["EzEx"][ik, im]      = np.abs(ez / ex)
+                S1 = np.abs(ex)**2 - np.abs(ey)**2
+                S2 = 2.0 * np.real(ex * np.conj(ey))
+                psi_raw  = 0.5 * np.degrees(np.arctan2(S2, S1))    # ∈ (-90, 90]
+                psi_fold = psi_raw % 180.0                           # ∈ [0, 180)
+                if psi_fold > 160.0:
+                    psi_fold -= 180.0
+                diagnostics["E_ellipse_angle"][ik, im] = psi_fold   
 
-            if np.abs(ex) >= eps:
-                diagnostics["EyEx"][ik, im] = np.abs(ey / ex)
-                diagnostics["EzEx"][ik, im] = np.abs(ez / ex)
-                diagnostics["phaseEyEx"][ik, im] = np.degrees(np.angle(ey / ex))
+            diagnostics["density_comp"][ik, im]  = np.linalg.norm(dn_rel) / (b_norm + eps_abs)
+            diagnostics["magnetic_comp"][ik, im] = np.abs(bz)**2 / (b_norm**2 + eps_abs)
+            diagnostics["EB_ratio"][ik, im]      = e_norm / (np.sqrt(state.c2) * b_norm + eps_abs)
 
-            diagnostics["density_comp"][ik, im] = np.linalg.norm(dn_rel) / (b_norm + eps)
-            diagnostics["magnetic_comp"][ik, im] = np.abs(bz) ** 2 / (b_norm**2 + eps)
-            diagnostics["EB_ratio"][ik, im] = e_norm / (np.sqrt(state.c2) * b_norm + eps)
-            diagnostics["ByBx"][ik, im] = np.abs(by / bx) if np.abs(bx) >= eps else np.nan
-            diagnostics["phaseByBx"][ik, im] = np.degrees(np.angle(by / bx)) if np.abs(bx) >= eps else np.nan
-            diagnostics["BzBx"][ik, im] = np.abs(bz / bx) if np.abs(bx) >= eps else np.nan
-
+            if np.abs(bx) >= rel_threshold * b_norm and b_norm > eps_abs:
+                S1 = np.abs(bx)**2 - np.abs(by)**2
+                S2 = 2.0 * np.real(bx * np.conj(by))
+                psi_raw  = 0.5 * np.degrees(np.arctan2(S2, S1))    # ∈ (-90, 90]
+                psi_fold = psi_raw % 180.0                           # ∈ [0, 180)
+                if psi_fold > 160.0:
+                    psi_fold -= 180.0
+                diagnostics["ByBx"][ik, im]      = np.abs(by / bx)
+                diagnostics["BzBx"][ik, im]      = np.abs(bz / bx)
+                diagnostics["B_ellipse_angle"][ik, im] = psi_fold   
+                
     return diagnostics
 
 
@@ -672,12 +733,12 @@ def plot_method2_results(kk, omega_track, diagnostics, state, theta):
     items = [
         ("EyEx", r"$|E_y/E_x|$", True),
         ("EzEx", r"$|E_z/E_x|$", True),
-        ("phaseEyEx", r"$\angle(E_y/E_x)$ [deg]", False),
+        ("E_ellipse_angle", r"$\psi$ [deg]", False),
         ("density_comp", r"$||\delta n/n_0|| \,/\, ||\delta B||$", True),
         ("magnetic_comp", r"$|\delta B_{\parallel}|^2 / |\delta B|^2$", False),
         ("EB_ratio", r"$|\delta E| / (c |\delta B|)$", True),
         ("ByBx", r"$|B_y/B_x|$", True),
-        ("phaseByBx", r"$\angle(B_y/B_x)$ [deg]", False),
+        ("B_ellipse_angle", r"$\psi$ [deg]", False),
         ("BzBx", r"$|B_z/B_x|$", True),
     ]
 
@@ -709,6 +770,8 @@ def plot_method2_results(kk, omega_track, diagnostics, state, theta):
                 markeredgecolor=styles[im]["color"],
                 markeredgewidth=0.8,
             )
+            if key in ("E_ellipse_angle", "B_ellipse_angle"):
+                ax.set_title(f"angle between major axes of $\mathbf{{{key[0].upper()}}}$ ellipse and x-axis")
 
         ax.set_xlabel("kc")
         ax.set_ylabel(ylabel)
@@ -844,4 +907,3 @@ def pdrf(method=2, rel=0, input_file="pdrf.in", kmin=kmin, kmax=kmax, dk=dk, the
 
 if __name__ == "__main__":
     result = pdrf(method=2, rel=0, input_file="pdrf.in", kmin=kmin, kmax=kmax, dk=dk, theta=theta)
-
