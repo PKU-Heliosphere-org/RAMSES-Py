@@ -10,7 +10,9 @@
 
 # The goal of this project is to provide a more flexible, extensible, 
 # and user-friendly platform for dispersion-relation analysis in magnetized plasmas.
+
 # version 1.0, 2026-03-11, Xie Haoen and He Jiansen
+
 # reference: 
 # Computer Physics Communications 185 (2014) 670–675,
 # Xie Huasheng,
@@ -842,3 +844,4 @@ def pdrf(method=2, rel=0, input_file="pdrf.in", kmin=kmin, kmax=kmax, dk=dk, the
 
 if __name__ == "__main__":
     result = pdrf(method=2, rel=0, input_file="pdrf.in", kmin=kmin, kmax=kmax, dk=dk, theta=theta)
+
